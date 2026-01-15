@@ -1,0 +1,316 @@
+// Spanish User Manual Content
+import { UserManualSection } from '../lib/types';
+
+export const userManualES: UserManualSection[] = [
+    {
+        id: 'introduction',
+        title: 'Introducción',
+        content: `
+La **Calculadora TQB** es una herramienta diseñada para calcular las clasificaciones de torneos de softbol utilizando los criterios de desempate de la **Regla C11 del Reglamento de Torneos de la WBSC** (Confederación Mundial de Béisbol y Softbol).
+
+Esta aplicación ayuda a oficiales de torneos y entrenadores a determinar con precisión las clasificaciones de equipos cuando múltiples equipos tienen el mismo récord de victorias-derrotas.
+
+### Propósito
+- Calcular y mostrar clasificaciones de torneos
+- Aplicar automáticamente las reglas oficiales de desempate de la WBSC
+- Generar informes profesionales en PDF
+- Soportar formatos de torneo round-robin (hasta 8 equipos)
+    `,
+    },
+    {
+        id: 'getting-started',
+        title: 'Primeros Pasos',
+        content: `
+### Paso 1: Ingresar Nombres de Equipos
+
+1. En la primera pantalla, ingrese los nombres de todos los equipos en su torneo
+2. Haga clic en **"Agregar Equipo"** para añadir más equipos (máximo 8 equipos)
+3. Haga clic en el **icono de papelera** junto a un equipo para eliminarlo (mínimo 2 equipos requeridos)
+4. Los nombres de equipos no pueden contener caracteres especiales
+5. Una vez que proceda a la siguiente pantalla, los nombres de equipos no pueden ser editados
+
+### Consejos
+- Use nombres oficiales de equipos para un registro preciso
+- Verifique la ortografía antes de continuar
+- También puede cargar un archivo CSV con todos los datos prellenados
+    `,
+    },
+    {
+        id: 'csv-upload',
+        title: 'Guía de Carga CSV',
+        content: `
+### Formato CSV
+
+Cargue un archivo CSV para llenar automáticamente todos los datos de equipos y partidos. El archivo debe tener las siguientes columnas:
+
+| Columna | Descripción |
+|---------|-------------|
+| Team_A | Nombre del primer equipo |
+| Team_B | Nombre del segundo equipo |
+| Runs_A | Carreras anotadas por Equipo A |
+| Runs_B | Carreras anotadas por Equipo B |
+| Earned_Runs_A | Carreras limpias anotadas por Equipo A |
+| Earned_Runs_B | Carreras limpias anotadas por Equipo B |
+| Innings_A_Batting | Entradas del Equipo A al bate |
+| Innings_A_Defense | Entradas del Equipo A en defensa |
+| Innings_B_Batting | Entradas del Equipo B al bate |
+| Innings_B_Defense | Entradas del Equipo B en defensa |
+
+### CSV de Ejemplo
+
+\`\`\`
+Team_A,Team_B,Runs_A,Runs_B,Earned_Runs_A,Earned_Runs_B,Innings_A_Batting,Innings_A_Defense,Innings_B_Batting,Innings_B_Defense
+Tigres,Aguilas,5,3,4,2,7,6.2,6.2,7
+Aguilas,Tiburones,2,8,1,6,7,7,7,7
+\`\`\`
+
+### Cómo Cargar
+1. Haga clic en el botón **"Cargar CSV"** o arrastre y suelte su archivo
+2. El sistema validará el formato y extraerá los nombres de equipos
+3. Si es válido, procederá directamente a los resultados
+    `,
+    },
+    {
+        id: 'entering-games',
+        title: 'Ingresando Resultados de Partidos',
+        content: `
+### Emparejamientos Auto-Generados
+
+El sistema genera automáticamente todos los emparejamientos posibles en formato round-robin:
+- 4 equipos = 6 partidos
+- 5 equipos = 10 partidos
+- 6 equipos = 15 partidos
+- 7 equipos = 21 partidos
+- 8 equipos = 28 partidos
+
+### Para Cada Partido, Ingrese:
+
+**Carreras Anotadas**
+- Ingrese el total de carreras anotadas por cada equipo
+- Debe ser un número entero (0 o mayor)
+
+**Formato de Entradas**
+El campo de entradas usa un formato decimal especial:
+- **Entradas completas**: 7, 6, 5, etc.
+- **Entradas + 1 out**: 7.1 (7 entradas completas + 1 out)
+- **Entradas + 2 outs**: 7.2 (7 entradas completas + 2 outs)
+
+**¿Por qué este formato?**
+El softbol cuenta outs por entrada (3 outs = 1 entrada completa). Si un partido termina a mitad de entrada, necesita registrar las entradas parciales.
+
+**Ejemplo**: Si un partido termina después de que el Equipo A hace 2 outs en la 7ma entrada, ingrese "6.2" (6 entradas completas + 2 outs = 6⅔ entradas).
+
+**Entradas al Bate vs. en Defensa**
+- **Entradas al Bate**: Número de entradas que el equipo pasó bateando (ofensiva)
+- **Entradas en Defensa**: Número de entradas que el equipo pasó en el campo (defensa)
+- Estas pueden diferir en partidos que terminan temprano (ej., regla de misericordia, lluvia)
+    `,
+    },
+    {
+        id: 'tie-breaking',
+        title: 'Entendiendo los Criterios de Desempate',
+        content: `
+### Jerarquía de Desempate de la Regla C11 de WBSC
+
+Cuando múltiples equipos tienen el mismo récord de victorias-derrotas, se aplican los siguientes criterios **en orden**:
+
+---
+
+**1. Récord de Victorias-Derrotas**
+Los equipos se ordenan primero por su total de victorias.
+
+---
+
+**2. Resultados Directos (Head-to-Head)**
+Para equipos con récords idénticos:
+- **2 equipos**: El ganador de su enfrentamiento directo se clasifica más alto
+- **3+ equipos**: El equipo con mejor récord en partidos SOLO entre los equipos empatados se clasifica más alto
+- Si es circular (A venció a B, B venció a C, C venció a A), se procede al TQB
+
+---
+
+**3. Balance de Calidad del Equipo (TQB)**
+
+**Fórmula:**
+\`\`\`
+TQB = (Carreras Anotadas ÷ Entradas al Bate) - (Carreras Permitidas ÷ Entradas en Defensa)
+\`\`\`
+
+**Qué mide:**
+- La diferencia entre producción ofensiva y rendimiento defensivo
+- Un TQB más alto indica mejor calidad general del equipo
+- Valores positivos significan que el equipo anota más carreras por entrada de las que permite
+
+---
+
+**4. TQB de Carreras Limpias (ER-TQB)**
+
+Solo se usa si el TQB no resuelve los empates.
+
+**Fórmula:**
+\`\`\`
+ER-TQB = (Carreras Limpias Anotadas ÷ Entradas al Bate) - (Carreras Limpias Permitidas ÷ Entradas en Defensa)
+\`\`\`
+
+**Qué mide:**
+- Similar al TQB pero usa carreras limpias (excluye carreras anotadas debido a errores)
+- Proporciona una medida más "pura" del rendimiento del equipo
+
+---
+
+**5. Promedio de Bateo**
+Si el ER-TQB no resuelve los empates, se comparan los promedios de bateo entre equipos empatados.
+*Nota: Esto requiere revisión manual*
+
+---
+
+**6. Lanzamiento de Moneda**
+Como último recurso, los empates se resuelven por lanzamiento de moneda.
+*Nota: Esto requiere ejecución manual*
+    `,
+    },
+    {
+        id: 'viewing-results',
+        title: 'Visualizando Resultados',
+        content: `
+### Pantalla de Clasificaciones
+
+La visualización de clasificaciones muestra:
+- **Posición de Rango**: #1, #2, #3, etc.
+- **Nombre del Equipo**: El nombre del equipo
+- **Récord V-D**: Victorias y derrotas
+- **Valor TQB/ER-TQB**: Valor de balance calculado (a 4 decimales)
+
+### Entendiendo los Valores
+
+- **TQB Positivo**: El equipo anota más carreras por entrada de las que permite (¡bien!)
+- **TQB Negativo**: El equipo permite más carreras por entrada de las que anota
+- **TQB Cero**: Ofensiva y defensa perfectamente balanceadas
+
+### Mensajes de Resolución de Empates
+
+La pantalla indicará cómo se resolvieron los empates:
+- "Empates resueltos usando Resultados Directos"
+- "Empates resueltos usando TQB (Balance de Calidad del Equipo)"
+- "Empates resueltos usando ER-TQB (Balance de Calidad por Carreras Limpias)"
+- "Se requiere revisión manual para Promedio de Bateo o Lanzamiento de Moneda"
+    `,
+    },
+    {
+        id: 'exporting',
+        title: 'Exportando Resultados',
+        content: `
+### Exportar a PDF
+
+En la pantalla de clasificaciones finales, haga clic en **"Exportar a PDF"** para generar un informe imprimible.
+
+**Antes de exportar:**
+1. Ingrese un **Nombre de Torneo** (ej., "Campeonato Regional 2026")
+2. Opcionalmente ajuste la fecha (por defecto es hoy)
+3. Haga clic en **"Generar PDF"**
+
+**El PDF incluye:**
+- Nombre del torneo y fecha
+- Referencia a la Regla C11 de WBSC
+- Tabla de clasificaciones finales con todas las estadísticas
+- Método de desempate utilizado
+- Resumen de resultados de partidos
+- Referencia de fórmulas
+    `,
+    },
+    {
+        id: 'example',
+        title: 'Ejemplo Paso a Paso',
+        content: `
+### Ejemplo Completo con 4 Equipos
+
+**Equipos:** Tigres, Águilas, Tiburones, Leones
+
+**Resultados de Partidos:**
+
+| Partido | Marcador | Entradas |
+|---------|----------|----------|
+| Tigres vs Águilas | 5-3 | 7.0 cada uno |
+| Tigres vs Tiburones | 4-4 | 7.0 cada uno |
+| Tigres vs Leones | 6-2 | 7.0 cada uno |
+| Águilas vs Tiburones | 2-8 | 7.0 cada uno |
+| Águilas vs Leones | 5-5 | 7.0 cada uno |
+| Tiburones vs Leones | 3-1 | 7.0 cada uno |
+
+**Récords de Victorias-Derrotas:**
+- Tigres: 2-0-1 (2 victorias, 1 empate)
+- Tiburones: 2-0-1 (2 victorias, 1 empate)
+- Leones: 0-2-1 (1 empate)
+- Águilas: 0-2-1 (1 empate)
+
+**Directos (Tigres vs Tiburones):** Empatados 4-4
+
+**Cálculo de TQB:**
+Como el enfrentamiento directo está empatado, calculamos TQB:
+
+*Tigres:*
+- Carreras Anotadas: 5+4+6 = 15
+- Carreras Permitidas: 3+4+2 = 9
+- TQB = (15÷21) - (9÷21) = 0.7143 - 0.4286 = **+0.2857**
+
+*Tiburones:*
+- Carreras Anotadas: 4+8+3 = 15
+- Carreras Permitidas: 4+2+1 = 7
+- TQB = (15÷21) - (7÷21) = 0.7143 - 0.3333 = **+0.3810**
+
+**Clasificaciones Finales:**
+1. Tiburones (TQB: +0.3810)
+2. Tigres (TQB: +0.2857)
+3. Águilas
+4. Leones
+    `,
+    },
+    {
+        id: 'troubleshooting',
+        title: 'Solución de Problemas',
+        content: `
+### Problemas Comunes
+
+**"Formato de entradas inválido"**
+- Use solo números enteros o decimales .1 o .2
+- Válido: 7, 7.1, 7.2, 6, 6.1, 6.2
+- Inválido: 7.3, 7.5, 6.33, etc.
+
+**"Campos requeridos faltantes"**
+- Todos los campos de carreras y entradas deben estar llenos
+- Verifique cada partido para inputs vacíos
+
+**"El nombre del equipo ya existe"**
+- Cada equipo debe tener un nombre único
+- Verifique entradas duplicadas
+
+**Errores de carga CSV**
+- Asegúrese de que las 10 columnas estén presentes
+- Verifique comas faltantes o columnas extra
+- Verifique el formato de entradas en su hoja de cálculo
+
+### Comenzar de Nuevo
+
+Haga clic en **"Iniciar Nuevo Cálculo"** en cualquier pantalla de resultados para volver al principio e ingresar nuevos datos. Todos los datos actuales serán borrados.
+    `,
+    },
+    {
+        id: 'about',
+        title: 'Acerca de la Regla C11 de WBSC',
+        content: `
+### Referencia Oficial
+
+Esta calculadora implementa los procedimientos de desempate del **Reglamento de Torneos de WBSC, Regla C11**.
+
+La Confederación Mundial de Béisbol y Softbol (WBSC) es el organismo rector mundial para béisbol y softbol. Sus reglamentos de torneos proporcionan procedimientos estandarizados para determinar clasificaciones cuando los equipos tienen récords de victorias-derrotas iguales.
+
+### Descargo de Responsabilidad
+
+Aunque esta calculadora implementa la fórmula oficial de desempate de WBSC, siempre verifique los resultados con la documentación oficial del torneo. Para las reglas oficiales de WBSC, visite: [wbsc.org](https://www.wbsc.org)
+
+### Versión
+
+Calculadora TQB v1.0.0
+    `,
+    },
+];

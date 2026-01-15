@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #8B5CF6;
+  --primary-light: #A78BFA;
+  --primary-dark: #7C3AED;
+  --success: #10B981;
+  --success-light: #34D399;
+  --warning: #F59E0B;
+  --warning-light: #FBBF24;
+  --error: #EF4444;
+  --error-light: #F87171;
+  --bg-dark: #0F0F23;
+  --bg-card: #1A1A2E;
+  --border-color: #374151;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Lato', 'Inter', system-ui, sans-serif;
+  background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 50%, #2D1B4E 100%);
+  min-height: 100vh;
+  color: #FFFFFF;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1A1A2E;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4B5563;
+}
+
+/* Card component */
+@layer components {
+  .card {
+    @apply bg-dark-800/80 backdrop-blur-sm border border-dark-500 rounded-2xl shadow-xl;
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-dark-500;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-900 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-500 hover:bg-primary-600 text-white focus:ring-primary-500 shadow-lg shadow-primary-500/25;
+  }
+
+  .btn-success {
+    @apply btn bg-success-500 hover:bg-success-600 text-white focus:ring-success-500 shadow-lg shadow-success-500/25;
+  }
+
+  .btn-warning {
+    @apply btn bg-warning-500 hover:bg-warning-600 text-white focus:ring-warning-500 shadow-lg shadow-warning-500/25;
+  }
+
+  .btn-error {
+    @apply btn bg-error-500 hover:bg-error-600 text-white focus:ring-error-500 shadow-lg shadow-error-500/25;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-primary-500 text-primary-400 hover:bg-primary-500/10;
+  }
+
+  .btn-ghost {
+    @apply btn text-gray-300 hover:bg-white/5;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full px-4 py-3 bg-dark-700 border border-dark-500 rounded-xl text-white placeholder-gray-500 transition-all duration-200 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20;
+  }
+
+  .input-error {
+    @apply border-error-500 focus:border-error-500 focus:ring-error-500/20;
+  }
+
+  /* Badge/Tag styles */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-500/20 text-primary-400 border border-primary-500/30;
+  }
+
+  .badge-success {
+    @apply badge bg-success-500/20 text-success-400 border border-success-500/30;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning-500/20 text-warning-400 border border-warning-500/30;
+  }
+
+  .badge-error {
+    @apply badge bg-error-500/20 text-error-400 border border-error-500/30;
+  }
+
+  /* Stats display */
+  .stat-value {
+    @apply font-mono text-2xl font-bold;
+  }
+
+  .stat-label {
+    @apply text-sm text-gray-400 uppercase tracking-wide;
+  }
+
+  /* Table styles */
+  .table-dark {
+    @apply w-full text-left;
+  }
+
+  .table-dark th {
+    @apply px-4 py-3 text-sm font-semibold text-gray-400 uppercase tracking-wider bg-dark-700/50 first:rounded-tl-lg last:rounded-tr-lg;
+  }
+
+  .table-dark td {
+    @apply px-4 py-4 border-t border-dark-600 font-mono;
+  }
+
+  .table-dark tr:hover td {
+    @apply bg-dark-700/30;
+  }
+
+  /* Rank indicator */
+  .rank-badge {
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-xl font-bold font-mono;
+  }
+
+  .rank-1 {
+    @apply rank-badge bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-900;
+  }
+
+  .rank-2 {
+    @apply rank-badge bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900;
+  }
+
+  .rank-3 {
+    @apply rank-badge bg-gradient-to-br from-amber-600 to-amber-800 text-amber-100;
+  }
+
+  .rank-default {
+    @apply rank-badge bg-dark-600 text-gray-300;
+  }
+
+  /* Step indicator */
+  .step-indicator {
+    @apply flex items-center gap-2 text-sm text-gray-400;
+  }
+
+  .step-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .step-active {
+    @apply bg-primary-500;
+  }
+
+  .step-complete {
+    @apply bg-success-500;
+  }
+
+  .step-pending {
+    @apply bg-dark-500;
+  }
+
+  /* Modal backdrop */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/70 backdrop-blur-sm z-40;
+  }
+
+  .modal-content {
+    @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-4xl max-h-[90vh] overflow-auto;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    @apply relative inline-block;
+  }
+
+  .tooltip-text {
+    @apply invisible opacity-0 absolute z-10 px-3 py-2 text-sm bg-dark-600 text-white rounded-lg whitespace-nowrap transition-all duration-200;
+  }
+
+  .tooltip:hover .tooltip-text {
+    @apply visible opacity-100;
+  }
+
+  /* Game card */
+  .game-card {
+    @apply p-5 bg-dark-700/50 border border-dark-500 rounded-xl hover:border-primary-500/30 transition-all duration-200;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--primary), 0 0 30px var(--primary);
+  }
+}
+
+/* Print styles for PDF */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+}

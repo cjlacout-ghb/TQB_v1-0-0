@@ -1,0 +1,221 @@
+'use client';
+
+import { useState, useCallback, useMemo } from 'react';
+import { Team, GameData, TeamStats, TieBreakMethod, ScreenNumber } from '@/lib/types';
+import { generateMatchups, calculateRankings } from '@/lib/calculations';
+import Header from '@/components/Header';
+import TeamEntry from '@/components/screens/TeamEntry';
+import GameEntry from '@/components/screens/GameEntry';
+import TQBRankings from '@/components/screens/TQBRankings';
+import EarnedRunsEntry from '@/components/screens/EarnedRunsEntry';
+import ERTQBRankings from '@/components/screens/ERTQBRankings';
+import UserManualModal from '@/components/modals/UserManualModal';
+import PDFExportModal from '@/components/modals/PDFExportModal';
+
+export default function Home() {
+    // App state
+    const [currentScreen, setCurrentScreen] = useState<ScreenNumber>(1);
+    const [teams, setTeams] = useState<Team[]>([
+        { id: 'team-1', name: '' },
+        { id: 'team-2', name: '' },
+    ]);
+    const [games, setGames] = useState<GameData[]>([]);
+    const [rankings, setRankings] = useState<TeamStats[]>([]);
+    const [tieBreakMethod, setTieBreakMethod] = useState<TieBreakMethod>('WIN_LOSS');
+    const [needsERTQB, setNeedsERTQB] = useState(false);
+    const [hasUnresolvedTies, setHasUnresolvedTies] = useState(false);
+
+    // Modal states
+    const [isManualOpen, setIsManualOpen] = useState(false);
+    const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+
+    // Calculate total steps dynamically
+    const totalSteps = useMemo(() => {
+        return needsERTQB ? 5 : 3;
+    }, [needsERTQB]);
+
+    // Handle CSV import - go directly to results
+    const handleCSVImport = useCallback((importedTeams: Team[], importedGames: GameData[]) => {
+        setTeams(importedTeams);
+        setGames(importedGames);
+
+        // Calculate TQB rankings
+        const result = calculateRankings(importedTeams, importedGames, false);
+        setRankings(result.rankings);
+        setTieBreakMethod(result.tieBreakMethod);
+        setNeedsERTQB(result.needsERTQB);
+
+        // If CSV has earned runs and TQB doesn't resolve, calculate ER-TQB
+        if (result.needsERTQB) {
+            // Check if earned runs are available
+            const hasEarnedRuns = importedGames.every(
+                g => g.earnedRunsA !== null && g.earnedRunsB !== null
+            );
+
+            if (hasEarnedRuns) {
+                const erResult = calculateRankings(importedTeams, importedGames, true);
+                setRankings(erResult.rankings);
+                setTieBreakMethod(erResult.tieBreakMethod);
+                setHasUnresolvedTies(erResult.hasTies);
+                setCurrentScreen(5);
+            } else {
+                setCurrentScreen(3);
+            }
+        } else {
+            setCurrentScreen(3);
+        }
+    }, []);
+
+    // Handle proceeding from Screen 1 to Screen 2
+    const handleContinueToGames = useCallback(() => {
+        // Generate matchups for all teams
+        const matchups = generateMatchups(teams);
+        const initialGames: GameData[] = matchups.map(match => ({
+            ...match,
+            runsA: null,
+            runsB: null,
+            inningsABatting: '',
+            inningsADefense: '',
+            inningsBBatting: '',
+            inningsBDefense: '',
+            earnedRunsA: null,
+            earnedRunsB: null,
+        }));
+
+        setGames(initialGames);
+        setCurrentScreen(2);
+    }, [teams]);
+
+    // Handle TQB calculation from Screen 2
+    const handleCalculateTQB = useCallback(() => {
+        const result = calculateRankings(teams, games, false);
+        setRankings(result.rankings);
+        setTieBreakMethod(result.tieBreakMethod);
+        setNeedsERTQB(result.needsERTQB);
+        setCurrentScreen(3);
+    }, [teams, games]);
+
+    // Handle proceeding to ER-TQB entry
+    const handleProceedToERTQB = useCallback(() => {
+        setCurrentScreen(4);
+    }, []);
+
+    // Handle ER-TQB calculation from Screen 4
+    const handleCalculateERTQB = useCallback(() => {
+        const result = calculateRankings(teams, games, true);
+        setRankings(result.rankings);
+        setTieBreakMethod(result.tieBreakMethod);
+        setHasUnresolvedTies(result.hasTies);
+        setCurrentScreen(5);
+    }, [teams, games]);
+
+    // Handle starting new calculation
+    const handleStartNew = useCallback(() => {
+        setCurrentScreen(1);
+        setTeams([
+            { id: 'team-1', name: '' },
+            { id: 'team-2', name: '' },
+        ]);
+        setGames([]);
+        setRankings([]);
+        setTieBreakMethod('WIN_LOSS');
+        setNeedsERTQB(false);
+        setHasUnresolvedTies(false);
+    }, []);
+
+    // Render current screen
+    const renderScreen = () => {
+        switch (currentScreen) {
+            case 1:
+                return (
+                    <TeamEntry
+                        teams={teams}
+                        onTeamsChange={setTeams}
+                        onContinue={handleContinueToGames}
+                        onCSVImport={handleCSVImport}
+                    />
+                );
+
+            case 2:
+                return (
+                    <GameEntry
+                        teams={teams}
+                        games={games}
+                        onGamesChange={setGames}
+                        onCalculate={handleCalculateTQB}
+                        totalSteps={totalSteps}
+                    />
+                );
+
+            case 3:
+                return (
+                    <TQBRankings
+                        rankings={rankings}
+                        tieBreakMethod={tieBreakMethod}
+                        needsERTQB={needsERTQB}
+                        onProceedToERTQB={handleProceedToERTQB}
+                        onExportPDF={() => setIsPDFModalOpen(true)}
+                        onStartNew={handleStartNew}
+                        totalSteps={totalSteps}
+                        games={games}
+                    />
+                );
+
+            case 4:
+                return (
+                    <EarnedRunsEntry
+                        games={games}
+                        onGamesChange={setGames}
+                        onCalculate={handleCalculateERTQB}
+                    />
+                );
+
+            case 5:
+                return (
+                    <ERTQBRankings
+                        rankings={rankings}
+                        tieBreakMethod={tieBreakMethod}
+                        hasUnresolvedTies={hasUnresolvedTies}
+                        onExportPDF={() => setIsPDFModalOpen(true)}
+                        onStartNew={handleStartNew}
+                        games={games}
+                    />
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col">
+            <Header onOpenManual={() => setIsManualOpen(true)} />
+
+            <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
+                {renderScreen()}
+            </main>
+
+            {/* Footer */}
+            <footer className="py-4 text-center text-sm text-gray-500 border-t border-dark-600">
+                <p>TQB Calculator v1.0.0 • WBSC Rule C11 Tie-Breaker System</p>
+            </footer>
+
+            {/* Modals */}
+            <UserManualModal
+                isOpen={isManualOpen}
+                onClose={() => setIsManualOpen(false)}
+            />
+
+            <PDFExportModal
+                isOpen={isPDFModalOpen}
+                onClose={() => setIsPDFModalOpen(false)}
+                data={{
+                    rankings,
+                    games,
+                    tieBreakMethod,
+                    useERTQB: currentScreen === 5,
+                }}
+            />
+        </div>
+    );
+}

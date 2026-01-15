@@ -1,0 +1,316 @@
+// English User Manual Content
+import { UserManualSection } from '../lib/types';
+
+export const userManualEN: UserManualSection[] = [
+    {
+        id: 'introduction',
+        title: 'Introduction',
+        content: `
+The **TQB Calculator** is a tool designed to calculate softball tournament standings using the **WBSC (World Baseball Softball Confederation) Tournament Regulations Rule C11** tie-breaking criteria.
+
+This application helps tournament officials and coaches accurately determine team rankings when multiple teams have the same win-loss record.
+
+### Purpose
+- Calculate and display tournament standings
+- Apply official WBSC tie-breaking rules automatically
+- Generate professional PDF reports
+- Support round-robin tournament formats (up to 8 teams)
+    `,
+    },
+    {
+        id: 'getting-started',
+        title: 'Getting Started',
+        content: `
+### Step 1: Enter Team Names
+
+1. On the first screen, enter the names of all teams in your tournament
+2. Click **"Add Team"** to add more teams (maximum 8 teams)
+3. Click the **trash icon** next to a team to remove it (minimum 2 teams required)
+4. Team names cannot contain special characters
+5. Once you proceed to the next screen, team names cannot be edited
+
+### Tips
+- Use official team names for accurate record-keeping
+- Double-check spelling before proceeding
+- You can also upload a CSV file with all data pre-filled
+    `,
+    },
+    {
+        id: 'csv-upload',
+        title: 'CSV Upload Guide',
+        content: `
+### CSV Format
+
+Upload a CSV file to automatically fill in all team and game data. The file must have the following columns:
+
+| Column | Description |
+|--------|-------------|
+| Team_A | Name of the first team |
+| Team_B | Name of the second team |
+| Runs_A | Runs scored by Team A |
+| Runs_B | Runs scored by Team B |
+| Earned_Runs_A | Earned runs scored by Team A |
+| Earned_Runs_B | Earned runs scored by Team B |
+| Innings_A_Batting | Innings Team A was at bat |
+| Innings_A_Defense | Innings Team A was on defense |
+| Innings_B_Batting | Innings Team B was at bat |
+| Innings_B_Defense | Innings Team B was on defense |
+
+### Sample CSV
+
+\`\`\`
+Team_A,Team_B,Runs_A,Runs_B,Earned_Runs_A,Earned_Runs_B,Innings_A_Batting,Innings_A_Defense,Innings_B_Batting,Innings_B_Defense
+Tigers,Eagles,5,3,4,2,7,6.2,6.2,7
+Eagles,Sharks,2,8,1,6,7,7,7,7
+\`\`\`
+
+### How to Upload
+1. Click the **"Upload CSV"** button or drag and drop your file
+2. The system will validate the format and extract team names
+3. If valid, you'll proceed directly to the results
+    `,
+    },
+    {
+        id: 'entering-games',
+        title: 'Entering Game Results',
+        content: `
+### Auto-Generated Matchups
+
+The system automatically generates all possible matchups in a round-robin format:
+- 4 teams = 6 games
+- 5 teams = 10 games
+- 6 teams = 15 games
+- 7 teams = 21 games
+- 8 teams = 28 games
+
+### For Each Game, Enter:
+
+**Runs Scored**
+- Enter the total runs scored by each team
+- Must be a whole number (0 or greater)
+
+**Innings Format**
+The innings field uses a special decimal format:
+- **Whole innings**: 7, 6, 5, etc.
+- **Innings + 1 out**: 7.1 (7 complete innings + 1 out)
+- **Innings + 2 outs**: 7.2 (7 complete innings + 2 outs)
+
+**Why this format?**
+Softball counts outs per inning (3 outs = 1 complete inning). If a game ends mid-inning, you need to record the partial innings.
+
+**Example**: If a game ends after Team A makes 2 outs in the 7th inning, enter "6.2" (6 complete innings + 2 outs = 6⅔ innings).
+
+**Innings at Bat vs. Defense**
+- **Innings at Bat**: Number of innings the team spent batting (offense)
+- **Innings on Defense**: Number of innings the team spent in the field (defense)
+- These can differ in games that end early (e.g., mercy rule, rain)
+    `,
+    },
+    {
+        id: 'tie-breaking',
+        title: 'Understanding Tie-Breaking Criteria',
+        content: `
+### WBSC Rule C11 Tie-Breaking Hierarchy
+
+When multiple teams have the same win-loss record, the following criteria are applied **in order**:
+
+---
+
+**1. Win-Loss Record**
+Teams are first sorted by their total wins.
+
+---
+
+**2. Head-to-Head Results**
+For teams with identical records:
+- **2 teams**: The winner of their direct matchup ranks higher
+- **3+ teams**: The team with the best record in games among ONLY the tied teams ranks higher
+- If circular (A beat B, B beat C, C beat A), proceed to TQB
+
+---
+
+**3. Team Quality Balance (TQB)**
+
+**Formula:**
+\`\`\`
+TQB = (Runs Scored ÷ Innings at Bat) - (Runs Allowed ÷ Innings on Defense)
+\`\`\`
+
+**What it measures:**
+- The difference between offensive production and defensive performance
+- A higher TQB indicates better overall team quality
+- Positive values mean the team scores more runs per inning than they allow
+
+---
+
+**4. Earned Runs TQB (ER-TQB)**
+
+Only used if TQB doesn't resolve ties.
+
+**Formula:**
+\`\`\`
+ER-TQB = (Earned Runs Scored ÷ Innings at Bat) - (Earned Runs Allowed ÷ Innings on Defense)
+\`\`\`
+
+**What it measures:**
+- Similar to TQB but uses earned runs (excludes runs scored due to errors)
+- Provides a more "pure" measure of team performance
+
+---
+
+**5. Batting Average**
+If ER-TQB doesn't resolve ties, compare batting averages among tied teams.
+*Note: This requires manual review*
+
+---
+
+**6. Coin Toss**
+As a last resort, ties are broken by coin toss.
+*Note: This requires manual execution*
+    `,
+    },
+    {
+        id: 'viewing-results',
+        title: 'Viewing Results',
+        content: `
+### Rankings Screen
+
+The rankings display shows:
+- **Rank Position**: #1, #2, #3, etc.
+- **Team Name**: The team's name
+- **W-L Record**: Wins and losses
+- **TQB/ER-TQB Value**: Calculated balance value (to 4 decimal places)
+
+### Understanding the Values
+
+- **Positive TQB**: Team scores more runs per inning than they allow (good!)
+- **Negative TQB**: Team allows more runs per inning than they score
+- **Zero TQB**: Perfectly balanced offense and defense
+
+### Tie Resolution Messages
+
+The screen will indicate how ties were resolved:
+- "Ties resolved using Head-to-Head Results"
+- "Ties resolved using TQB (Team Quality Balance)"
+- "Ties resolved using ER-TQB (Earned Runs Team Quality Balance)"
+- "Manual review needed for Batting Average or Coin Toss"
+    `,
+    },
+    {
+        id: 'exporting',
+        title: 'Exporting Results',
+        content: `
+### Export to PDF
+
+On the final rankings screen, click **"Export to PDF"** to generate a printable report.
+
+**Before exporting:**
+1. Enter a **Tournament Name** (e.g., "2026 Regional Championship")
+2. Optionally adjust the date (defaults to today)
+3. Click **"Generate PDF"**
+
+**The PDF includes:**
+- Tournament name and date
+- WBSC Rule C11 reference
+- Final standings table with all statistics
+- Tie-breaking method used
+- Game results summary
+- Formula reference
+    `,
+    },
+    {
+        id: 'example',
+        title: 'Example Walkthrough',
+        content: `
+### Complete Example with 4 Teams
+
+**Teams:** Tigers, Eagles, Sharks, Lions
+
+**Game Results:**
+
+| Game | Score | Innings |
+|------|-------|---------|
+| Tigers vs Eagles | 5-3 | 7.0 each |
+| Tigers vs Sharks | 4-4 | 7.0 each |
+| Tigers vs Lions | 6-2 | 7.0 each |
+| Eagles vs Sharks | 2-8 | 7.0 each |
+| Eagles vs Lions | 5-5 | 7.0 each |
+| Sharks vs Lions | 3-1 | 7.0 each |
+
+**Win-Loss Records:**
+- Tigers: 2-0-1 (2 wins, 1 tie)
+- Sharks: 2-0-1 (2 wins, 1 tie)
+- Lions: 0-2-1 (1 tie)
+- Eagles: 0-2-1 (1 tie)
+
+**Head-to-Head (Tigers vs Sharks):** Tied 4-4
+
+**TQB Calculation:**
+Since head-to-head is tied, calculate TQB:
+
+*Tigers:*
+- Runs Scored: 5+4+6 = 15
+- Runs Allowed: 3+4+2 = 9
+- TQB = (15÷21) - (9÷21) = 0.7143 - 0.4286 = **+0.2857**
+
+*Sharks:*
+- Runs Scored: 4+8+3 = 15
+- Runs Allowed: 4+2+1 = 7
+- TQB = (15÷21) - (7÷21) = 0.7143 - 0.3333 = **+0.3810**
+
+**Final Rankings:**
+1. Sharks (TQB: +0.3810)
+2. Tigers (TQB: +0.2857)
+3. Eagles
+4. Lions
+    `,
+    },
+    {
+        id: 'troubleshooting',
+        title: 'Troubleshooting',
+        content: `
+### Common Issues
+
+**"Invalid innings format"**
+- Use only whole numbers or .1 or .2 decimals
+- Valid: 7, 7.1, 7.2, 6, 6.1, 6.2
+- Invalid: 7.3, 7.5, 6.33, etc.
+
+**"Missing required fields"**
+- All runs and innings fields must be filled
+- Check each game for empty inputs
+
+**"Team name already exists"**
+- Each team must have a unique name
+- Check for duplicate entries
+
+**CSV upload errors**
+- Ensure all 10 columns are present
+- Check for missing commas or extra columns
+- Verify innings format in your spreadsheet
+
+### Starting Over
+
+Click **"Start New Calculation"** on any results screen to return to the beginning and enter new data. All current data will be cleared.
+    `,
+    },
+    {
+        id: 'about',
+        title: 'About WBSC Rule C11',
+        content: `
+### Official Reference
+
+This calculator implements the tie-breaking procedures from the **WBSC Tournament Regulations, Rule C11**.
+
+The World Baseball Softball Confederation (WBSC) is the world governing body for baseball and softball. Their tournament regulations provide standardized procedures for determining standings when teams have equal win-loss records.
+
+### Disclaimer
+
+While this calculator implements the official WBSC tie-breaking formula, always verify results with official tournament documentation. For official WBSC rules, visit: [wbsc.org](https://www.wbsc.org)
+
+### Version
+
+TQB Calculator v1.0.0
+    `,
+    },
+];
