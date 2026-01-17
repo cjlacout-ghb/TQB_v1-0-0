@@ -18,6 +18,7 @@ export default function Home() {
     const [teams, setTeams] = useState<Team[]>([
         { id: 'team-1', name: '' },
         { id: 'team-2', name: '' },
+        { id: 'team-3', name: '' },
     ]);
     const [games, setGames] = useState<GameData[]>([]);
     const [rankings, setRankings] = useState<TeamStats[]>([]);
@@ -115,6 +116,7 @@ export default function Home() {
         setTeams([
             { id: 'team-1', name: '' },
             { id: 'team-2', name: '' },
+            { id: 'team-3', name: '' },
         ]);
         setGames([]);
         setRankings([]);
@@ -122,6 +124,21 @@ export default function Home() {
         setNeedsERTQB(false);
         setHasUnresolvedTies(false);
     }, []);
+
+    // Handle going back
+    const handleBack = useCallback(() => {
+        if (currentScreen === 1) {
+            handleStartNew();
+        } else if (currentScreen === 2) {
+            setCurrentScreen(1);
+        } else if (currentScreen === 3) {
+            setCurrentScreen(2);
+        } else if (currentScreen === 4) {
+            setCurrentScreen(3);
+        } else if (currentScreen === 5) {
+            setCurrentScreen(4);
+        }
+    }, [currentScreen, handleStartNew]);
 
     // Render current screen
     const renderScreen = () => {
@@ -133,6 +150,7 @@ export default function Home() {
                         onTeamsChange={setTeams}
                         onContinue={handleContinueToGames}
                         onCSVImport={handleCSVImport}
+                        onBack={handleBack}
                     />
                 );
 
@@ -143,6 +161,7 @@ export default function Home() {
                         games={games}
                         onGamesChange={setGames}
                         onCalculate={handleCalculateTQB}
+                        onBack={handleBack}
                         totalSteps={totalSteps}
                     />
                 );
@@ -156,6 +175,7 @@ export default function Home() {
                         onProceedToERTQB={handleProceedToERTQB}
                         onExportPDF={() => setIsPDFModalOpen(true)}
                         onStartNew={handleStartNew}
+                        onBack={handleBack}
                         totalSteps={totalSteps}
                         games={games}
                     />
@@ -167,6 +187,7 @@ export default function Home() {
                         games={games}
                         onGamesChange={setGames}
                         onCalculate={handleCalculateERTQB}
+                        onBack={handleBack}
                     />
                 );
 
@@ -178,6 +199,7 @@ export default function Home() {
                         hasUnresolvedTies={hasUnresolvedTies}
                         onExportPDF={() => setIsPDFModalOpen(true)}
                         onStartNew={handleStartNew}
+                        onBack={handleBack}
                         games={games}
                     />
                 );

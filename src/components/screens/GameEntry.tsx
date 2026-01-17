@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { Calculator, AlertCircle, HelpCircle } from 'lucide-react';
+import { Calculator, AlertCircle, HelpCircle, ArrowLeftRight, ArrowLeft } from 'lucide-react';
 import { Team, GameData } from '@/lib/types';
-import { validateInningsFormat } from '@/lib/calculations';
+import { validateInningsFormat, inningsToOuts } from '@/lib/calculations';
 import StepIndicator from '../StepIndicator';
 
 interface GameEntryProps {
@@ -11,6 +11,7 @@ interface GameEntryProps {
     games: GameData[];
     onGamesChange: (games: GameData[]) => void;
     onCalculate: () => void;
+    onBack?: () => void;
     totalSteps: number;
 }
 
@@ -19,6 +20,7 @@ export default function GameEntry({
     games,
     onGamesChange,
     onCalculate,
+    onBack,
     totalSteps
 }: GameEntryProps) {
     const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
@@ -26,24 +28,51 @@ export default function GameEntry({
 
     const updateGame = useCallback((
         gameId: string,
-        field: keyof GameData,
-        value: string | number | null
+        updates: Partial<GameData>
     ) => {
         onGamesChange(
-            games.map(g => g.id === gameId ? { ...g, [field]: value } : g)
+            games.map(g => g.id === gameId ? { ...g, ...updates } : g)
         );
 
-        // Clear specific field error when user types
-        if (errors[gameId]?.[field]) {
-            setErrors(prev => ({
-                ...prev,
-                [gameId]: {
-                    ...prev[gameId],
-                    [field]: '',
-                },
-            }));
+        // Clear errors for updated fields
+        if (errors[gameId]) {
+            const nextErrors = { ...errors[gameId] };
+            let changed = false;
+            Object.keys(updates).forEach(key => {
+                if (nextErrors[key]) {
+                    nextErrors[key] = '';
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                setErrors(prev => ({
+                    ...prev,
+                    [gameId]: nextErrors,
+                }));
+            }
         }
     }, [games, onGamesChange, errors]);
+
+    const swapTeams = useCallback((gameId: string) => {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+
+        updateGame(gameId, {
+            teamAId: game.teamBId,
+            teamBId: game.teamAId,
+            teamAName: game.teamBName,
+            teamBName: game.teamAName,
+            runsA: game.runsB,
+            runsB: game.runsA,
+            inningsABatting: game.inningsBBatting,
+            inningsADefense: game.inningsBDefense,
+            inningsBBatting: game.inningsABatting,
+            inningsBDefense: game.inningsADefense,
+            earnedRunsA: game.earnedRunsB,
+            earnedRunsB: game.earnedRunsA,
+        });
+    }, [games, updateGame]);
 
     const validateGames = useCallback((): boolean => {
         const newErrors: Record<string, Record<string, string>> = {};
@@ -72,6 +101,28 @@ export default function GameEntry({
                 const value = game[field] as string;
                 if (!value || !validateInningsFormat(value)) {
                     gameErrors[field] = 'Invalid format';
+                    hasErrors = true;
+                }
+            }
+
+            // Logic Restrictions:
+            // 1. A winning home team has NEVER more 'innings at bat' than a losing visitor team
+            // 2. A losing home team has NEVER less 'innings at bat' than a winning visitor team
+            const visitorOuts = inningsToOuts(game.inningsABatting);
+            const homeOuts = inningsToOuts(game.inningsBBatting);
+            const visitorRuns = game.runsA ?? 0;
+            const homeRuns = game.runsB ?? 0;
+
+            if (homeRuns > visitorRuns) {
+                // Home team won
+                if (homeOuts >= visitorOuts) {
+                    gameErrors.inningsBBatting = 'Winning home team must have fewer innings at bat than visitor';
+                    hasErrors = true;
+                }
+            } else if (homeRuns < visitorRuns) {
+                // Visitor team won
+                if (homeOuts !== visitorOuts) {
+                    gameErrors.inningsBBatting = 'Losing home team must have exactly the same innings at bat as visitor';
                     hasErrors = true;
                 }
             }
@@ -111,11 +162,22 @@ export default function GameEntry({
 
             <div className="card">
                 <div className="card-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-white">Enter Game Results</h2>
-                        <p className="text-sm text-gray-400 mt-1">
-                            {gamesCount} games for {teamsCount} teams (round-robin format)
-                        </p>
+                    <div className="flex items-center gap-4">
+                        {onBack && (
+                            <button
+                                onClick={onBack}
+                                className="group flex items-center justify-center w-10 h-10 rounded-full bg-dark-600 text-gray-400 hover:text-white hover:bg-dark-500 transition-all duration-200"
+                                aria-label="Go back"
+                            >
+                                <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+                            </button>
+                        )}
+                        <div>
+                            <h2 className="text-2xl font-bold text-white">Enter Game Results</h2>
+                            <p className="text-sm text-gray-400 mt-1">
+                                {gamesCount} games for {teamsCount} teams (round-robin format)
+                            </p>
+                        </div>
                     </div>
 
                     {/* Innings Help Toggle */}
@@ -156,7 +218,8 @@ export default function GameEntry({
                                 game={game}
                                 gameNumber={index + 1}
                                 errors={errors[game.id] || {}}
-                                onUpdate={(field, value) => updateGame(game.id, field, value)}
+                                onUpdate={(updates) => updateGame(game.id, updates)}
+                                onSwap={() => swapTeams(game.id)}
                             />
                         ))}
                     </div>
@@ -170,7 +233,7 @@ export default function GameEntry({
                                     Please fix the errors above
                                 </p>
                                 <p className="text-xs text-error-300 mt-1">
-                                    All fields are required. Innings must be whole numbers or end in .1 or .2
+                                    All fields are required. Innings must be valid and respect game outcome logic.
                                 </p>
                             </div>
                         </div>
@@ -196,21 +259,30 @@ interface GameCardProps {
     game: GameData;
     gameNumber: number;
     errors: Record<string, string>;
-    onUpdate: (field: keyof GameData, value: string | number | null) => void;
+    onUpdate: (updates: Partial<GameData>) => void;
+    onSwap: () => void;
 }
 
-function GameCard({ game, gameNumber, errors, onUpdate }: GameCardProps) {
+function GameCard({ game, gameNumber, errors, onUpdate, onSwap }: GameCardProps) {
     const handleRunsChange = (field: 'runsA' | 'runsB', value: string) => {
         const num = value === '' ? null : parseInt(value, 10);
         if (value === '' || (!isNaN(num!) && num! >= 0)) {
-            onUpdate(field, num);
+            onUpdate({ [field]: num });
         }
     };
 
     const handleInningsChange = (field: keyof GameData, value: string) => {
         // Allow empty, digits, and single decimal point
         if (value === '' || /^\d*\.?[012]?$/.test(value)) {
-            onUpdate(field, value);
+            const updates: Partial<GameData> = { [field]: value };
+
+            // Softball Rule: At Bat for Team A = Defense for Team B
+            if (field === 'inningsABatting') updates.inningsBDefense = value;
+            if (field === 'inningsADefense') updates.inningsBBatting = value;
+            if (field === 'inningsBBatting') updates.inningsADefense = value;
+            if (field === 'inningsBDefense') updates.inningsABatting = value;
+
+            onUpdate(updates);
         }
     };
 
@@ -222,19 +294,34 @@ function GameCard({ game, gameNumber, errors, onUpdate }: GameCardProps) {
                     <span className="px-3 py-1 bg-dark-600 rounded-lg text-sm font-mono text-gray-400">
                         Game {gameNumber}
                     </span>
-                    <h3 className="text-lg font-semibold text-white">
-                        {game.teamAName} <span className="text-gray-500 mx-2">vs</span> {game.teamBName}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-white">
+                            {game.teamAName} <span className="text-gray-500 mx-1">vs</span> {game.teamBName}
+                        </h3>
+                        <button
+                            onClick={onSwap}
+                            title="Swap Visitor/Home"
+                            className="p-1.5 text-gray-400 hover:text-primary-400 hover:bg-primary-500/10 rounded-md transition-all flex items-center gap-2"
+                        >
+                            <ArrowLeftRight size={14} />
+                            <span className="text-[10px] uppercase tracking-wider font-bold">Swap</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Two Column Layout for Teams */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Team A */}
+                {/* Team A - Visitor */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-3 h-3 rounded-full bg-primary-500" />
-                        <span className="font-semibold text-white">{game.teamAName}</span>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-primary-500" />
+                            <span className="font-semibold text-white">{game.teamAName}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-primary-400 tracking-widest uppercase bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">
+                            Visitor
+                        </span>
                     </div>
 
                     <div>
@@ -260,7 +347,7 @@ function GameCard({ game, gameNumber, errors, onUpdate }: GameCardProps) {
                                 value={game.inningsABatting}
                                 onChange={(e) => handleInningsChange('inningsABatting', e.target.value)}
                                 className={`input font-mono ${errors.inningsABatting ? 'input-error' : ''}`}
-                                placeholder="7"
+                                placeholder="0"
                             />
                             {errors.inningsABatting && (
                                 <p className="mt-1 text-xs text-error-400">{errors.inningsABatting}</p>
@@ -273,7 +360,7 @@ function GameCard({ game, gameNumber, errors, onUpdate }: GameCardProps) {
                                 value={game.inningsADefense}
                                 onChange={(e) => handleInningsChange('inningsADefense', e.target.value)}
                                 className={`input font-mono ${errors.inningsADefense ? 'input-error' : ''}`}
-                                placeholder="7"
+                                placeholder="0"
                             />
                             {errors.inningsADefense && (
                                 <p className="mt-1 text-xs text-error-400">{errors.inningsADefense}</p>
@@ -282,11 +369,16 @@ function GameCard({ game, gameNumber, errors, onUpdate }: GameCardProps) {
                     </div>
                 </div>
 
-                {/* Team B */}
+                {/* Team B - Home */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-3 h-3 rounded-full bg-success-500" />
-                        <span className="font-semibold text-white">{game.teamBName}</span>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-success-500" />
+                            <span className="font-semibold text-white">{game.teamBName}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-success-400 tracking-widest uppercase bg-success-500/10 px-2 py-0.5 rounded border border-success-500/20">
+                            Home Team
+                        </span>
                     </div>
 
                     <div>
@@ -312,7 +404,7 @@ function GameCard({ game, gameNumber, errors, onUpdate }: GameCardProps) {
                                 value={game.inningsBBatting}
                                 onChange={(e) => handleInningsChange('inningsBBatting', e.target.value)}
                                 className={`input font-mono ${errors.inningsBBatting ? 'input-error' : ''}`}
-                                placeholder="7"
+                                placeholder="0"
                             />
                             {errors.inningsBBatting && (
                                 <p className="mt-1 text-xs text-error-400">{errors.inningsBBatting}</p>
@@ -325,7 +417,7 @@ function GameCard({ game, gameNumber, errors, onUpdate }: GameCardProps) {
                                 value={game.inningsBDefense}
                                 onChange={(e) => handleInningsChange('inningsBDefense', e.target.value)}
                                 className={`input font-mono ${errors.inningsBDefense ? 'input-error' : ''}`}
-                                placeholder="7"
+                                placeholder="0"
                             />
                             {errors.inningsBDefense && (
                                 <p className="mt-1 text-xs text-error-400">{errors.inningsBDefense}</p>

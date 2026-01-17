@@ -135,8 +135,8 @@ export function parseCSV(content: string): CSVParseResult {
 
     // Check team count
     const teamList = Array.from(teams.values());
-    if (teamList.length < 2) {
-        errors.push('CSV must contain at least 2 different teams');
+    if (teamList.length < 3) {
+        errors.push('CSV must contain at least 3 different teams');
     }
     if (teamList.length > 8) {
         errors.push('CSV contains more than 8 teams (maximum allowed)');

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Plus, Trash2, Upload, HelpCircle, ArrowRight, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Upload, HelpCircle, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Team, GameData } from '@/lib/types';
 import { parseCSV, getSampleCSV } from '@/lib/csvParser';
 import StepIndicator from '../StepIndicator';
@@ -11,16 +11,18 @@ interface TeamEntryProps {
     onTeamsChange: (teams: Team[]) => void;
     onContinue: () => void;
     onCSVImport: (teams: Team[], games: GameData[]) => void;
+    onBack?: () => void;
 }
 
 const MAX_TEAMS = 8;
-const MIN_TEAMS = 2;
+const MIN_TEAMS = 3;
 
 export default function TeamEntry({
     teams,
     onTeamsChange,
     onContinue,
-    onCSVImport
+    onCSVImport,
+    onBack
 }: TeamEntryProps) {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [csvError, setCSVError] = useState<string[]>([]);
@@ -144,10 +146,24 @@ export default function TeamEntry({
 
             <div className="card">
                 <div className="card-header">
-                    <h2 className="text-2xl font-bold text-white">Enter Teams</h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                        Add {MIN_TEAMS} to {MAX_TEAMS} teams for your tournament
-                    </p>
+                    <div className="flex items-center gap-4">
+                        {onBack && (
+                            <button
+                                onClick={onBack}
+                                className="group flex items-center justify-center w-10 h-10 rounded-full bg-dark-600 text-gray-400 hover:text-white hover:bg-dark-500 transition-all duration-200"
+                                title="Reset form"
+                                aria-label="Reset form"
+                            >
+                                <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+                            </button>
+                        )}
+                        <div>
+                            <h2 className="text-2xl font-bold text-white">Enter Teams</h2>
+                            <p className="text-sm text-gray-400 mt-1">
+                                Add {MIN_TEAMS} to {MAX_TEAMS} teams for your tournament
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="card-body space-y-6">

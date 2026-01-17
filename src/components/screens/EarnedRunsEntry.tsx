@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { Calculator, AlertCircle, Info } from 'lucide-react';
+import { Calculator, AlertCircle, Info, ArrowLeft } from 'lucide-react';
 import { GameData } from '@/lib/types';
 import StepIndicator from '../StepIndicator';
 
@@ -9,12 +9,14 @@ interface EarnedRunsEntryProps {
     games: GameData[];
     onGamesChange: (games: GameData[]) => void;
     onCalculate: () => void;
+    onBack?: () => void;
 }
 
 export default function EarnedRunsEntry({
     games,
     onGamesChange,
-    onCalculate
+    onCalculate,
+    onBack
 }: EarnedRunsEntryProps) {
     const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
 
@@ -90,11 +92,22 @@ export default function EarnedRunsEntry({
             <StepIndicator currentStep={4} totalSteps={5} />
 
             <div className="card">
-                <div className="card-header">
-                    <h2 className="text-2xl font-bold text-white">Enter Earned Runs</h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                        TQB did not resolve all ties. Enter earned runs for ER-TQB calculation.
-                    </p>
+                <div className="card-header flex items-center gap-4">
+                    {onBack && (
+                        <button
+                            onClick={onBack}
+                            className="group flex items-center justify-center w-10 h-10 rounded-full bg-dark-600 text-gray-400 hover:text-white hover:bg-dark-500 transition-all duration-200"
+                            aria-label="Go back"
+                        >
+                            <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+                        </button>
+                    )}
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">Enter Earned Runs</h2>
+                        <p className="text-sm text-gray-400 mt-1">
+                            TQB did not resolve all ties. Enter earned runs for ER-TQB calculation.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="card-body space-y-6">
@@ -190,12 +203,17 @@ function EarnedRunsCard({ game, gameNumber, errors, onUpdate }: EarnedRunsCardPr
 
             {/* Two Column Layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Team A */}
+                {/* Team A - Visitor */}
                 <div>
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-3 h-3 rounded-full bg-primary-500" />
-                        <span className="font-semibold text-white">{game.teamAName}</span>
-                        <span className="text-sm text-gray-500">(Total: {game.runsA} runs)</span>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-primary-500" />
+                            <span className="font-semibold text-white">{game.teamAName}</span>
+                            <span className="text-sm text-gray-500">(Total: {game.runsA} runs)</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-primary-400 tracking-widest uppercase bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">
+                            Visitor
+                        </span>
                     </div>
 
                     <div>
@@ -215,12 +233,17 @@ function EarnedRunsCard({ game, gameNumber, errors, onUpdate }: EarnedRunsCardPr
                     </div>
                 </div>
 
-                {/* Team B */}
+                {/* Team B - Home */}
                 <div>
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-3 h-3 rounded-full bg-success-500" />
-                        <span className="font-semibold text-white">{game.teamBName}</span>
-                        <span className="text-sm text-gray-500">(Total: {game.runsB} runs)</span>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-success-500" />
+                            <span className="font-semibold text-white">{game.teamBName}</span>
+                            <span className="text-sm text-gray-500">(Total: {game.runsB} runs)</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-success-400 tracking-widest uppercase bg-success-500/10 px-2 py-0.5 rounded border border-success-500/20">
+                            Home Team
+                        </span>
                     </div>
 
                     <div>

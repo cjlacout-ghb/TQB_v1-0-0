@@ -1,9 +1,10 @@
 'use client';
 
-import { FileDown, RotateCcw, AlertTriangle, Trophy, Info, CheckCircle } from 'lucide-react';
+import { FileDown, RotateCcw, AlertTriangle, Trophy, Info, CheckCircle, ArrowLeft } from 'lucide-react';
 import { TeamStats, TieBreakMethod, GameData } from '@/lib/types';
 import { formatTQBValue, getTieBreakMethodText } from '@/lib/calculations';
 import StepIndicator from '../StepIndicator';
+import TQBExplanationTable from '../TQBExplanationTable';
 
 interface ERTQBRankingsProps {
     rankings: TeamStats[];
@@ -11,6 +12,7 @@ interface ERTQBRankingsProps {
     hasUnresolvedTies: boolean;
     onExportPDF: () => void;
     onStartNew: () => void;
+    onBack?: () => void;
     games: GameData[];
 }
 
@@ -20,6 +22,7 @@ export default function ERTQBRankings({
     hasUnresolvedTies,
     onExportPDF,
     onStartNew,
+    onBack,
     games,
 }: ERTQBRankingsProps) {
     return (
@@ -28,16 +31,27 @@ export default function ERTQBRankings({
 
             <div className="card">
                 <div className="card-header">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 
-              flex items-center justify-center shadow-lg shadow-primary-500/30">
-                            <Trophy size={24} className="text-white" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">ER-TQB Rankings</h2>
-                            <p className="text-sm text-gray-400">
-                                Earned Runs Team Quality Balance - Final Results
-                            </p>
+                    <div className="flex items-center gap-4">
+                        {onBack && (
+                            <button
+                                onClick={onBack}
+                                className="group flex items-center justify-center w-10 h-10 rounded-full bg-dark-600 text-gray-400 hover:text-white hover:bg-dark-500 transition-all duration-200"
+                                aria-label="Go back"
+                            >
+                                <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+                            </button>
+                        )}
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 
+                  flex items-center justify-center shadow-lg shadow-primary-500/30">
+                                <Trophy size={24} className="text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-white">ER-TQB Rankings</h2>
+                                <p className="text-sm text-gray-400">
+                                    Earned Runs Team Quality Balance - Final Results
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -45,8 +59,8 @@ export default function ERTQBRankings({
                 <div className="card-body space-y-6">
                     {/* Tie-Break Method Indicator */}
                     <div className={`p-4 rounded-xl border flex items-start gap-3 ${hasUnresolvedTies
-                            ? 'bg-warning-500/10 border-warning-500/30'
-                            : 'bg-success-500/10 border-success-500/30'
+                        ? 'bg-warning-500/10 border-warning-500/30'
+                        : 'bg-success-500/10 border-success-500/30'
                         }`}>
                         {hasUnresolvedTies ? (
                             <AlertTriangle size={20} className="text-warning-400 flex-shrink-0 mt-0.5" />
@@ -106,6 +120,9 @@ export default function ERTQBRankings({
                             </tbody>
                         </table>
                     </div>
+
+                    {/* ER-TQB Explanation Summary */}
+                    <TQBExplanationTable rankings={rankings} isERTQB={true} />
 
                     {/* ER-TQB Formula */}
                     <div className="p-4 bg-dark-700/50 rounded-xl border border-dark-500">

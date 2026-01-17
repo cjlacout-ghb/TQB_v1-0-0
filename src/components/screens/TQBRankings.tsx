@@ -1,9 +1,10 @@
 'use client';
 
-import { FileDown, RotateCcw, AlertTriangle, Trophy, Info } from 'lucide-react';
+import { FileDown, RotateCcw, AlertTriangle, Trophy, Info, ArrowLeft } from 'lucide-react';
 import { TeamStats, TieBreakMethod, GameData } from '@/lib/types';
 import { formatTQBValue, getTieBreakMethodText } from '@/lib/calculations';
 import StepIndicator from '../StepIndicator';
+import TQBExplanationTable from '../TQBExplanationTable';
 
 interface TQBRankingsProps {
     rankings: TeamStats[];
@@ -12,6 +13,7 @@ interface TQBRankingsProps {
     onProceedToERTQB: () => void;
     onExportPDF: () => void;
     onStartNew: () => void;
+    onBack?: () => void;
     totalSteps: number;
     games: GameData[];
 }
@@ -23,6 +25,7 @@ export default function TQBRankings({
     onProceedToERTQB,
     onExportPDF,
     onStartNew,
+    onBack,
     totalSteps,
     games,
 }: TQBRankingsProps) {
@@ -32,16 +35,27 @@ export default function TQBRankings({
 
             <div className="card">
                 <div className="card-header">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 
-              flex items-center justify-center shadow-lg shadow-primary-500/30">
-                            <Trophy size={24} className="text-white" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">TQB Rankings</h2>
-                            <p className="text-sm text-gray-400">
-                                Team Quality Balance calculation results
-                            </p>
+                    <div className="flex items-center gap-4">
+                        {onBack && (
+                            <button
+                                onClick={onBack}
+                                className="group flex items-center justify-center w-10 h-10 rounded-full bg-dark-600 text-gray-400 hover:text-white hover:bg-dark-500 transition-all duration-200"
+                                aria-label="Go back"
+                            >
+                                <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+                            </button>
+                        )}
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 
+                  flex items-center justify-center shadow-lg shadow-primary-500/30">
+                                <Trophy size={24} className="text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-white">TQB Rankings</h2>
+                                <p className="text-sm text-gray-400">
+                                    Team Quality Balance calculation results
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -49,8 +63,8 @@ export default function TQBRankings({
                 <div className="card-body space-y-6">
                     {/* Tie-Break Method Indicator */}
                     <div className={`p-4 rounded-xl border flex items-start gap-3 ${needsERTQB
-                            ? 'bg-warning-500/10 border-warning-500/30'
-                            : 'bg-success-500/10 border-success-500/30'
+                        ? 'bg-warning-500/10 border-warning-500/30'
+                        : 'bg-success-500/10 border-success-500/30'
                         }`}>
                         {needsERTQB ? (
                             <AlertTriangle size={20} className="text-warning-400 flex-shrink-0 mt-0.5" />
@@ -110,6 +124,9 @@ export default function TQBRankings({
                             </tbody>
                         </table>
                     </div>
+
+                    {/* TQB Explanation Summary */}
+                    <TQBExplanationTable rankings={rankings} />
 
                     {/* TQB Formula */}
                     <div className="p-4 bg-dark-700/50 rounded-xl border border-dark-500">

@@ -25,7 +25,7 @@ This application helps tournament officials and coaches accurately determine tea
 
 1. On the first screen, enter the names of all teams in your tournament
 2. Click **"Add Team"** to add more teams (maximum 8 teams)
-3. Click the **trash icon** next to a team to remove it (minimum 2 teams required)
+3. Click the **trash icon** next to a team to remove it (minimum 3 teams required)
 4. Team names cannot contain special characters
 5. Once you proceed to the next screen, team names cannot be edited
 

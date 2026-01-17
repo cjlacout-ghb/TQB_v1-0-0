@@ -78,6 +78,80 @@ export function generatePDF(data: PDFExportData): void {
     });
 
     // Get Y position after table
+    yPos = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+
+    // ===== TQB CALCULATION SUMMARY =====
+    if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+    }
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${data.useERTQB ? 'ER-TQB' : 'TQB'} Calculation Summary (${data.rankings.length}-Way Tie)`, 14, yPos);
+    yPos += 8;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    const summaryIntro = `This summary provides a detailed breakdown of the ${data.useERTQB ? 'ER-TQB' : 'TQB'} components. The tie is resolved by comparing the offensive efficiency (Ratio Scored) against the defensive efficiency (Ratio Allowed) based on each team's total innings played.`;
+    const introLines = doc.splitTextToSize(summaryIntro, pageWidth - 28);
+    doc.text(introLines, 14, yPos);
+    yPos += introLines.length * 5 + 5;
+
+    const summaryTableData = data.rankings.map((team, index) => {
+        const runsS = data.useERTQB ? team.earnedRunsScored : team.runsScored;
+        const runsA = data.useERTQB ? team.earnedRunsAllowed : team.runsAllowed;
+        const innBat = team.inningsAtBatOuts / 3;
+        const innDef = team.inningsOnDefenseOuts / 3;
+        const ratioS = innBat > 0 ? runsS / innBat : 0;
+        const ratioA = innDef > 0 ? runsA / innDef : 0;
+        const finalVal = data.useERTQB ? team.erTqb : team.tqb;
+
+        return [
+            `#${index + 1}`,
+            team.name,
+            `${runsS}`,
+            `${outsToInnings(team.inningsAtBatOuts).toFixed(1)}`,
+            `${runsA}`,
+            `${outsToInnings(team.inningsOnDefenseOuts).toFixed(1)}`,
+            ratioS.toFixed(4),
+            ratioA.toFixed(4),
+            formatTQBValue(finalVal)
+        ];
+    });
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Rank', 'Team', 'Runs S.', 'Inn. Bat', 'Runs A.', 'Inn. Def.', 'Ratio S.', 'Ratio A.', 'Final']],
+        body: summaryTableData,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [60, 60, 80],
+            textColor: textLight,
+            fontStyle: 'bold',
+            halign: 'center',
+            fontSize: 8,
+        },
+        columnStyles: {
+            0: { halign: 'center', cellWidth: 15 },
+            1: { halign: 'left' },
+            2: { halign: 'center' },
+            3: { halign: 'center' },
+            4: { halign: 'center' },
+            5: { halign: 'center' },
+            6: { halign: 'center', font: 'courier' },
+            7: { halign: 'center', font: 'courier' },
+            8: { halign: 'right', font: 'courier' },
+        },
+        styles: { fontSize: 8 },
+        alternateRowStyles: {
+            fillColor: [245, 245, 250],
+        },
+        margin: { left: 14, right: 14 },
+    });
+
     yPos = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
 
     // ===== TIE-BREAKING METHOD =====

@@ -25,7 +25,7 @@ Esta aplicación ayuda a oficiales de torneos y entrenadores a determinar con pr
 
 1. En la primera pantalla, ingrese los nombres de todos los equipos en su torneo
 2. Haga clic en **"Agregar Equipo"** para añadir más equipos (máximo 8 equipos)
-3. Haga clic en el **icono de papelera** junto a un equipo para eliminarlo (mínimo 2 equipos requeridos)
+3. Haga clic en el **icono de papelera** junto a un equipo para eliminarlo (mínimo 3 equipos requeridos)
 4. Los nombres de equipos no pueden contener caracteres especiales
 5. Una vez que proceda a la siguiente pantalla, los nombres de equipos no pueden ser editados
 
